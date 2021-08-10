@@ -57,7 +57,12 @@ public class ClientHandler {
                             break;
                         }
 
-                        server.broadcastMsg(this, str);
+                        if (str.startsWith("/w ")) {
+                            String[] tokens = str.split("\\s", 3);
+                            server.sendWhisper(this, tokens[1], tokens[2]);
+                        } else {
+                            server.broadcastMsg(this, str);
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
