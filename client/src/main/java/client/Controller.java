@@ -172,13 +172,18 @@ public class Controller implements Initializable {
     }
 
     public void tryToAuth(ActionEvent actionEvent) {
-        if (socket == null || socket.isClosed()) {
-            connect();
-        }
-
         String login = loginField.getText().trim();
         String password = passwordField.getText().trim();
         String msg = String.format("/auth %s %s", login, password);
+
+        if (login.isEmpty() || password.isEmpty()) {
+            textArea.appendText("Поля логин и пароль обязательны для заполнения\n");
+            return;
+        } else {
+            if (socket == null || socket.isClosed()) {
+                connect();
+            }
+        }
 
         try {
             out.writeUTF(msg);

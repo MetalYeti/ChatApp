@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class ClientHandler {
     Socket socket;
@@ -25,6 +26,7 @@ public class ClientHandler {
 
             new Thread(() -> {
                 try {
+                    socket.setSoTimeout(120000);
                     // цикл аутентификации
                     while (true) {
                         String str = in.readUTF();
@@ -68,6 +70,7 @@ public class ClientHandler {
                             }
                         }
                     }
+                    socket.setSoTimeout(0);
                     // цикл работы
                     while (authenticated) {
                         String str = in.readUTF();
@@ -89,6 +92,9 @@ public class ClientHandler {
                             server.broadcastMsg(this, str);
                         }
                     }
+                } catch (SocketTimeoutException e) {
+                    sendMsg("/end");
+                    System.out.println("Client disconnected due timeout");
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
