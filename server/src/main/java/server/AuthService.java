@@ -17,4 +17,12 @@ public interface AuthService {
      * false если логин или никнейм уже заняты
      */
     boolean registration(String login, String password, String nickname);
+
+    /**
+     * Метод для попытки поменять никнейм
+     *
+     * @return true если смена прошла успешно
+     * false если никнейм уже занят
+     */
+    boolean changeNickname(String login, String nickname);
 }
