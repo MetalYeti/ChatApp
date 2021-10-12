@@ -16,7 +16,8 @@ public class Server {
 
     public Server() {
         clients = new CopyOnWriteArrayList<>();
-        authService = new SimpleAuthService();
+        //authService = new SimpleAuthService();
+        authService = new DBAuthService();
         try {
             server = new ServerSocket(PORT);
             System.out.println("Server started!");
@@ -37,6 +38,12 @@ public class Server {
         }
     }
 
+    public void systemMsg(String msg) {
+        for (ClientHandler c : clients) {
+            c.sendMsg(msg);
+        }
+    }
+
     public void broadcastMsg(ClientHandler sender, String msg) {
         String message = String.format("[ %s ]: %s", sender.getNickname(), msg);
         for (ClientHandler c : clients) {
@@ -46,26 +53,25 @@ public class Server {
 
     public boolean isSignedIn(String login) {
         for (ClientHandler c : clients) {
-            if (c.getLogin().equals(login)){
+            if (c.getLogin().equals(login)) {
                 return true;
             }
         }
         return false;
     }
 
-    public void broadcastClientList(){
+    public void broadcastClientList() {
         StringBuilder sb = new StringBuilder("/clientlist");
 
-        for(ClientHandler c : clients){
+        for (ClientHandler c : clients) {
             sb.append(" ").append(c.getNickname());
         }
 
         String message = sb.toString();
-        for(ClientHandler c : clients){
+        for (ClientHandler c : clients) {
             c.sendMsg(message);
         }
     }
-
 
     public void sendWhisper(ClientHandler sender, String recipientNick, String msg) {
         ClientHandler recipient = getClientByNickname(recipientNick);

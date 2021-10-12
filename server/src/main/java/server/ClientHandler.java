@@ -88,6 +88,17 @@ public class ClientHandler {
                                 }
                                 server.sendWhisper(this, tokens[1], tokens[2]);
                             }
+                            if (str.startsWith("/nick ")) {
+                                String newNick = str.split("\\s+")[1];
+                                if(updateNickname(newNick)) {
+                                    server.systemMsg(nickname + " поменял ник на " + newNick);
+                                    nickname = newNick;
+                                    server.broadcastClientList();
+                                    sendMsg("/nick " + newNick);
+                                }else{
+                                    sendMsg("Никнейм уже занят.");
+                                }
+                            }
                         } else {
                             server.broadcastMsg(this, str);
                         }
@@ -127,5 +138,9 @@ public class ClientHandler {
 
     public String getNickname() {
         return nickname;
+    }
+
+    public boolean updateNickname(String newNick) {
+        return server.getAuthService().changeNickname(login, newNick);
     }
 }
