@@ -24,7 +24,7 @@ public class ClientHandler {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
-            new Thread(() -> {
+            server.getExecutorService().execute(new Thread(() -> {
                 try {
                     socket.setSoTimeout(120000);
                     // цикл аутентификации
@@ -90,12 +90,12 @@ public class ClientHandler {
                             }
                             if (str.startsWith("/nick ")) {
                                 String newNick = str.split("\\s+")[1];
-                                if(updateNickname(newNick)) {
+                                if (updateNickname(newNick)) {
                                     server.systemMsg(nickname + " поменял ник на " + newNick);
                                     nickname = newNick;
                                     server.broadcastClientList();
                                     sendMsg("/nick " + newNick);
-                                }else{
+                                } else {
                                     sendMsg("Никнейм уже занят.");
                                 }
                             }
@@ -116,9 +116,8 @@ public class ClientHandler {
                         e.printStackTrace();
                     }
                 }
-            }).start();
-        } catch (
-                IOException e) {
+            }));
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

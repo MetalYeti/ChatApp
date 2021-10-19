@@ -19,12 +19,10 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class Controller implements Initializable {
     @FXML
@@ -53,6 +51,8 @@ public class Controller implements Initializable {
     private Stage stage;
     private Stage regStage;
     private RegController regController;
+    private FileWriter chatLogWriter;
+    private BufferedReader chatLogReader;
 
     public void setAuthenticated(boolean authenticated) {
         this.authenticated = authenticated;
@@ -63,27 +63,57 @@ public class Controller implements Initializable {
         clientList.setVisible(authenticated);
         clientList.setManaged(authenticated);
 
-        if (!authenticated) {
+        StringBuilder sb = new StringBuilder();
+
+        if (authenticated) {
+            try {
+                File file = new File("history_" + nickname + ".txt");
+
+                if (file.exists()) {
+                    chatLogReader = new BufferedReader(new FileReader(file));
+
+                    Object[] lines = chatLogReader.lines().toArray();
+
+                    long lineNum = 0;
+                    for (Object line : lines) {
+                        if (lineNum >= (lines.length > 100 ? lines.length - 100 : 0)) {
+                            sb.append(line).append("\n");
+                        }
+                        lineNum++;
+                    }
+
+                    chatLogReader.close();
+                }
+                chatLogWriter = new FileWriter("history_" + nickname + ".txt", true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
             nickname = "";
+            try {
+                if (chatLogWriter != null) {
+                    chatLogWriter.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         setTitle(nickname);
         textArea.clear();
+        textArea.appendText(sb.toString());
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Platform.runLater(() -> {
             stage = (Stage) textField.getScene().getWindow();
-            stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-                @Override
-                public void handle(WindowEvent event) {
-                    System.out.println("bye");
-                    if (socket != null && !socket.isClosed()) {
-                        try {
-                            out.writeUTF("/end");
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+            stage.setOnCloseRequest(event -> {
+                System.out.println("bye");
+                if (socket != null && !socket.isClosed()) {
+                    try {
+                        out.writeUTF("/end");
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
             });
@@ -138,11 +168,12 @@ public class Controller implements Initializable {
                                 });
                             }
                             if (str.startsWith("/nick")) {
-                                nickname = str.split("\\s")[1];
+                                nickname = str.split("\\s+")[1];
                                 setTitle(nickname);
                             }
                         } else {
                             textArea.appendText(str + "\n");
+                            chatLogWriter.write(str + "\n");
                         }
                     }
 
