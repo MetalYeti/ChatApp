@@ -5,6 +5,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientHandler {
     Socket socket;
@@ -15,6 +18,7 @@ public class ClientHandler {
     private boolean authenticated;
     private String nickname;
     private String login;
+    private static final Logger logger = Logger.getLogger(ClientHandler.class.getName());
 
     public ClientHandler(Socket socket, Server server) {
         try {
@@ -33,7 +37,8 @@ public class ClientHandler {
 
                         if (str.equals("/end")) {
                             sendMsg("/end");
-                            System.out.println("Client disconnected");
+                            //System.out.println("Client disconnected");
+                            logger.info("Client disconnected");
                             break;
                         }
                         if (str.startsWith("/auth ")) {
@@ -74,10 +79,12 @@ public class ClientHandler {
                     // цикл работы
                     while (authenticated) {
                         String str = in.readUTF();
+                        logger.fine("От пользователя " + nickname + " пришло сообщение/команда: " + str);
                         if (str.startsWith("/")) {
                             if (str.equals("/end")) {
                                 sendMsg("/end");
-                                System.out.println("Client disconnected");
+                                //System.out.println("Client disconnected");
+                                logger.info("Client disconnected");
                                 break;
                             }
 
@@ -105,20 +112,21 @@ public class ClientHandler {
                     }
                 } catch (SocketTimeoutException e) {
                     sendMsg("/end");
-                    System.out.println("Client disconnected due timeout");
+                    //System.out.println("Client disconnected due timeout");
+                    logger.info("Client disconnected due timeout");
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.warning(Arrays.toString(e.getStackTrace()));
                 } finally {
                     server.unsubscribe(this);
                     try {
                         socket.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.warning(Arrays.toString(e.getStackTrace()));
                     }
                 }
             }));
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warning(Arrays.toString(e.getStackTrace()));
         }
 
     }
@@ -127,7 +135,7 @@ public class ClientHandler {
         try {
             out.writeUTF(msg);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warning(Arrays.toString(e.getStackTrace()));
         }
     }
 
