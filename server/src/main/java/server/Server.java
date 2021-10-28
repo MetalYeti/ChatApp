@@ -3,41 +3,47 @@ package server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 public class Server {
     private ServerSocket server;
     private Socket socket;
     private final int PORT = 8189;
+    private final Logger logger;
 
     private List<ClientHandler> clients;
     private AuthService authService;
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
     public Server() {
+        logger = Logger.getLogger(this.getClass().getName());
         clients = new CopyOnWriteArrayList<>();
         //authService = new SimpleAuthService();
         authService = new DBAuthService();
         try {
             server = new ServerSocket(PORT);
-            System.out.println("Server started!");
+            //System.out.println("Server started!");
+            logger.info("Server started!");
 
             while (true) {
                 socket = server.accept();
-                System.out.println("Client connected");
+                //System.out.println("Client connected");
+                logger.info("Client connected");
                 new ClientHandler(socket, this);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warning(Arrays.toString(e.getStackTrace()));
         } finally {
             try {
                 server.close();
                 executorService.shutdown();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.warning(Arrays.toString(e.getStackTrace()));
             }
         }
     }

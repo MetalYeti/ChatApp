@@ -1,18 +1,22 @@
 package server;
 
 import java.sql.*;
+import java.util.logging.Logger;
 
 public class DBAuthService implements AuthService {
     private Connection connection;
     private PreparedStatement getNicknamePS;
     private PreparedStatement registerPS;
     private PreparedStatement updateNickPS;
+    private final Logger logger;
 
     public DBAuthService() {
+        logger = Logger.getLogger(this.getClass().getName());
         try {
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection("jdbc:sqlite:server.db");
-            System.out.println("Соединились с БД!");
+            //System.out.println("Соединились с БД!");
+            logger.info("Соединились с БД!");
             getNicknamePS = connection.prepareStatement("SELECT nickname FROM users WHERE login = ? AND password = ? LIMIT 1");
             registerPS = connection.prepareStatement("INSERT INTO users (login, password, nickname) VALUES (?, ?, ?)");
             updateNickPS = connection.prepareStatement("UPDATE users SET nickname = ? WHERE login = ?");
